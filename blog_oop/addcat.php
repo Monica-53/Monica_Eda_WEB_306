@@ -3,16 +3,14 @@ require_once('includes/bootstrap.php');
 require_once('header.php');
 
 
-if(!isset($_SESSION['USERNAME'])) {
+if(!$session->isLoggedIn()) {
 	header("Location: index1.php");
 }
 
 if(isset($_POST['submit'])) {
-	$sql = "INSERT INTO categories (cat) VALUES('" . $_POST['cat'] . "')";
-	mysqli_query($db, $sql);
-	mysqli_close($db);
-
-	header("Location: viewcat.php");
+    $category = new Category(0, $_POST['cat']);
+    $category->create();
+    header("Location: viewcat.php");
 } else {
 	?>
 <form action="<?php echo $_SERVER['SCRIPT_NAME']; ?>" method="post">

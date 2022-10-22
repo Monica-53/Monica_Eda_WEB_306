@@ -5,7 +5,7 @@
 **/
 
 class Database {
-    private $connection;
+   public $connection;
 
     /** 
     * Database constructore.
@@ -14,16 +14,13 @@ class Database {
     */
 
     public function __construct(){
-        // Create a new conenction using PDO method and store it
-        // into the property $connection
         $this->connection = new PDO("mysql:host=".DB_HOST.";dbname=".DB_NAME,DB_USER,DB_PASSWORD);
-        
     }
 
 //End of Databse Class
 
-public function __destruct(){
-
+public function __destructor(){
+    $connection=close();
 }
 
 /**
@@ -45,9 +42,7 @@ Public function sqlQuery($sql, $bindVal = null) {
 	
 /**
 *Execute an SQL statement and return an assoc. array
-*@param $sql
-*@param null $bindVal
-*@return array|bool*/
+*/
 
 public function fetchArray($sql, $bindVal = null) {
 	$result = $this->sqlQuery($sql, $bindVal);
@@ -59,6 +54,5 @@ return $result->fetchAll(PDO::FETCH_ASSOC);
 }
 
 } //End of Database class
-
-$dbc = new Database();	
+$dbc = new Database();
 ?>

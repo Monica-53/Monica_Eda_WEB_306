@@ -3,7 +3,7 @@ require_once('includes/bootstrap.php');
 require_once("header.php");
 //require_once("config.php");
 
-if(!isset($_SESSION['USERNAME'])) {
+if(!$session->isLoggedIn()) {
 	header("Location: index1.php");
 }
 
@@ -11,18 +11,24 @@ if(!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 	header("Location: index1.php");
 }
 
+
 $validId = $_GET['id'];
-$fillsql = "SELECT * FROM entries WHERE id=" . $validId . ";";
-$fillres = mysqli_query($db, $fillsql);
-$fillrow = mysqli_fetch_array($fillres, MYSQLI_ASSOC);
-
+$entry = Entry::find("SELECT * FROM `entries` WHERE id =:validId
+LIMIT 1",['validId' =>$validId]);
+$entry = array_shift($entry);
 if(isset($_POST['submit'])) {
-	$sql = "UPDATE entries SET cat_id=" . $_POST['cat'] . ", subject='" . $_POST['subject'] . "', body='" . $_POST['body'] . "' WHERE id=" . $validId . ";";
-	mysqli_query($db, $sql);
+    $_POST['cat'] = addslashes($_POST['cat']);
+    $_POST['subject'] = addslashes($_POST['subject']);
+    $_POST['body'] = addslashes($_POST['body']);
 
-	header("Location: viewentry.php?id=$validId");
+    $entry->setCatId($_POST['cat']);
+    $entry->setSubject($_POST['subject']);
+    $entry->setBody($_POST['body']);
+    $entry->update();
 
-} else {
+    header("Location: viewentry.php?id=$validId");
+}else{
+
 	?>
 
 	<h1>Update Entry</h1>
@@ -33,14 +39,15 @@ if(isset($_POST['submit'])) {
 				<td>
 					<select name="cat">
 						<?php
-						$catsql = "SELECT * FROM categories;";
-						$catres = mysqli_query($db, $catsql);
-						while($catrow = mysqli_fetch_array($catres, MYSQLI_ASSOC)) {
-							echo "<option value='" . $catrow['id'] . "'";
-							if($catrow['id'] == $fillrow['cat_id']) {
-								echo "selected ";
-							}
-							echo ">" . $catrow['cat'] . "</option>";
+                        $categories = Category::all();
+                        foreach($categories as $category) {
+                            echo "<option value='" . $category->getId() . "'";
+                            if($category->getId() ==$entry->getId()) {
+                                echo "selected ";
+                            }
+                            echo">" . $category->getCat() . "</option>";
+
+
 						}
 						?>
 					</select>
@@ -49,12 +56,12 @@ if(isset($_POST['submit'])) {
 
 			<tr>
 				<td>Subject</td>
-				<td><input type="text" name="subject" value="<?php echo $fillrow['subject']; ?>"/></td>
-			</tr>
+				<td><input type="text" name="subject" value="<?php echo $entry->getSubject(); ?>" /> </td>
+		</tr>
 
 			<tr>
 				<td>Body</td>
-				<td><textarea name="body" rows="10" cols="50"><?php echo $fillrow['body']; ?></textarea></td>
+				<td><textarea name="body" rows="10" cols="50"><?php echo $entry->getBody(); ?></textarea></td>
 			</tr>
 			<tr>
 				<td></td>
